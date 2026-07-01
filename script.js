@@ -100,6 +100,15 @@ function getTotalDays(habit) {
   return Object.keys(habit.completed).filter((key) => habit.completed[key]).length;
 }
 
+function moveHabit(id, direction) {
+  const index = habits.findIndex((h) => h.id === id);
+  const newIndex = index + direction;
+  if (index === -1 || newIndex < 0 || newIndex >= habits.length) return;
+  [habits[index], habits[newIndex]] = [habits[newIndex], habits[index]];
+  saveHabits();
+  renderHabits();
+}
+
 function toggleCollapse(id) {
   const habit = habits.find((h) => h.id === id);
   if (!habit) return;
@@ -404,7 +413,7 @@ function renderHabits() {
   habitListEl.innerHTML = '';
   emptyMessageEl.style.display = habits.length === 0 ? 'block' : 'none';
 
-  habits.forEach((habit) => {
+  habits.forEach((habit, index) => {
     const card = document.createElement('div');
     card.className = 'habit-card';
     card.id = `habit-card-${habit.id}`;
@@ -467,6 +476,24 @@ function renderHabits() {
       collapseBtn.title = habit.collapsed ? '펼치기' : '접기';
       collapseBtn.addEventListener('click', () => toggleCollapse(habit.id));
 
+      const moveUpBtn = document.createElement('button');
+      moveUpBtn.type = 'button';
+      moveUpBtn.className = 'order-btn';
+      moveUpBtn.textContent = '▲';
+      moveUpBtn.title = '위로 이동';
+      moveUpBtn.disabled = index === 0;
+      moveUpBtn.addEventListener('click', () => moveHabit(habit.id, -1));
+
+      const moveDownBtn = document.createElement('button');
+      moveDownBtn.type = 'button';
+      moveDownBtn.className = 'order-btn';
+      moveDownBtn.textContent = '▼';
+      moveDownBtn.title = '아래로 이동';
+      moveDownBtn.disabled = index === habits.length - 1;
+      moveDownBtn.addEventListener('click', () => moveHabit(habit.id, 1));
+
+      actions.appendChild(moveUpBtn);
+      actions.appendChild(moveDownBtn);
       actions.appendChild(checkBtn);
       actions.appendChild(deleteBtn);
       actions.appendChild(collapseBtn);
