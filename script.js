@@ -15,9 +15,10 @@ let selectedNewColor = DEFAULT_COLOR;
 let editingHabitId = null;
 let editNameDraft = '';
 let editColorDraft = DEFAULT_COLOR;
-let isStatsOpen = false;
 
 const THEME_KEY = 'habitTrackerTheme';
+const STATS_OPEN_KEY = 'habitTrackerStatsOpen';
+let isStatsOpen = localStorage.getItem(STATS_OPEN_KEY) !== 'false';
 
 const habitListEl = document.getElementById('habit-list');
 const emptyMessageEl = document.getElementById('empty-message');
@@ -37,6 +38,7 @@ themeToggleBtn.addEventListener('click', () => {
 
 statsToggleBtn.addEventListener('click', () => {
   isStatsOpen = !isStatsOpen;
+  localStorage.setItem(STATS_OPEN_KEY, String(isStatsOpen));
   renderStatsPanel();
 });
 
@@ -44,10 +46,37 @@ function loadHabits() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     const parsed = raw ? JSON.parse(raw) : [];
-    return parsed.map((h) => ({ color: DEFAULT_COLOR, ...h }));
+    return parsed.map((h) => ({ color: DEFAULT_COLOR, collapsed: false, ...h }));
   } catch (e) {
     return [];
   }
+}
+
+function getTotalDays(habit) {
+  return Object.keys(habit.completed).filter((key) => habit.completed[key]).length;
+}
+
+function toggleCollapse(id) {
+  const habit = habits.find((h) => h.id === id);
+  if (!habit) return;
+  habit.collapsed = !habit.collapsed;
+  saveHabits();
+  renderHabits();
+}
+
+function scrollToHabit(id) {
+  const habit = habits.find((h) => h.id === id);
+  if (!habit) return;
+  if (habit.collapsed) {
+    habit.collapsed = false;
+    saveHabits();
+    renderHabits();
+  }
+  const card = document.getElementById(`habit-card-${id}`);
+  if (!card) return;
+  card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  card.classList.add('flash-highlight');
+  setTimeout(() => card.classList.remove('flash-highlight'), 1200);
 }
 
 function createColorPicker(selectedColor, onSelect) {
@@ -159,13 +188,15 @@ function renderStatsPanel() {
   }
 
   const counts = habits
-    .map((habit) => ({ habit, total: Object.keys(habit.completed).length }))
+    .map((habit) => ({ habit, total: getTotalDays(habit) }))
     .sort((a, b) => b.total - a.total);
   const maxTotal = Math.max(...counts.map((c) => c.total), 1);
 
   counts.forEach(({ habit, total }) => {
     const row = document.createElement('div');
-    row.className = 'stats-row';
+    row.className = 'stats-row clickable';
+    row.title = '클릭하면 해당 습관 달력으로 이동';
+    row.addEventListener('click', () => scrollToHabit(habit.id));
 
     const label = document.createElement('span');
     label.className = 'stats-label';
@@ -310,6 +341,7 @@ function renderHabits() {
   habits.forEach((habit) => {
     const card = document.createElement('div');
     card.className = 'habit-card';
+    card.id = `habit-card-${habit.id}`;
 
     const header = document.createElement('div');
     header.className = 'habit-card-header';
@@ -336,8 +368,13 @@ function renderHabits() {
       streakEl.className = 'habit-streak';
       streakEl.textContent = `연속 ${calcStreak(habit)}일`;
 
+      const totalEl = document.createElement('span');
+      totalEl.className = 'habit-total';
+      totalEl.textContent = `총 ${getTotalDays(habit)}일`;
+
       nameGroup.appendChild(nameEl);
       nameGroup.appendChild(streakEl);
+      nameGroup.appendChild(totalEl);
 
       const actions = document.createElement('div');
       actions.className = 'habit-actions';
@@ -356,18 +393,26 @@ function renderHabits() {
       deleteBtn.textContent = '삭제';
       deleteBtn.addEventListener('click', () => deleteHabit(habit.id));
 
+      const collapseBtn = document.createElement('button');
+      collapseBtn.type = 'button';
+      collapseBtn.className = 'collapse-toggle-btn' + (habit.collapsed ? ' collapsed' : '');
+      collapseBtn.textContent = '▾';
+      collapseBtn.title = habit.collapsed ? '펼치기' : '접기';
+      collapseBtn.addEventListener('click', () => toggleCollapse(habit.id));
+
       actions.appendChild(checkBtn);
       actions.appendChild(deleteBtn);
+      actions.appendChild(collapseBtn);
 
       header.appendChild(nameGroup);
       header.appendChild(actions);
     }
 
     card.appendChild(header);
-    if (habit.id !== editingHabitId) {
+    if (habit.id !== editingHabitId && !habit.collapsed) {
       card.appendChild(renderBadges(habit));
+      card.appendChild(renderCalendar(habit));
     }
-    card.appendChild(renderCalendar(habit));
 
     habitListEl.appendChild(card);
   });

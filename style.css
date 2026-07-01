@@ -195,6 +195,14 @@ body {
   margin-bottom: 10px;
 }
 
+.stats-row.clickable {
+  cursor: pointer;
+}
+
+.stats-row.clickable:hover .stats-label {
+  text-decoration: underline;
+}
+
 .stats-label {
   width: 90px;
   flex-shrink: 0;
@@ -320,6 +328,15 @@ body {
   padding: 16px 20px;
 }
 
+@keyframes flash-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(9, 105, 218, 0); }
+  30% { box-shadow: 0 0 0 4px rgba(9, 105, 218, 0.4); }
+}
+
+.habit-card.flash-highlight {
+  animation: flash-pulse 1.2s ease;
+}
+
 .habit-card-header {
   display: flex;
   align-items: center;
@@ -330,6 +347,7 @@ body {
 .habit-name-group {
   display: flex;
   align-items: baseline;
+  flex-wrap: wrap;
   gap: 10px;
 }
 
@@ -404,10 +422,36 @@ body {
   border-radius: 10px;
 }
 
+.habit-total {
+  font-size: 13px;
+  color: var(--muted);
+  background: var(--hover-bg);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
 .habit-actions {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.collapse-toggle-btn {
+  width: 26px;
+  height: 26px;
+  border: 1px solid var(--border-light);
+  background: var(--card-bg);
+  border-radius: 6px;
+  color: var(--text);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s ease;
+}
+
+.collapse-toggle-btn.collapsed {
+  transform: rotate(-90deg);
 }
 
 .check-today-btn {
