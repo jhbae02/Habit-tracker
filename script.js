@@ -15,6 +15,8 @@ let selectedNewColor = DEFAULT_COLOR;
 let editingHabitId = null;
 let editNameDraft = '';
 let editColorDraft = DEFAULT_COLOR;
+let confirmDeleteId = null;
+let confirmDeleteTimer = null;
 
 const THEME_KEY = 'habitTrackerTheme';
 const STATS_OPEN_KEY = 'habitTrackerStatsOpen';
@@ -28,6 +30,9 @@ const addColorPickerEl = document.getElementById('add-color-picker');
 const themeToggleBtn = document.getElementById('theme-toggle');
 const statsToggleBtn = document.getElementById('stats-toggle-btn');
 const statsPanelEl = document.getElementById('stats-panel');
+const exportBtn = document.getElementById('export-btn');
+const importBtn = document.getElementById('import-btn');
+const importFileInput = document.getElementById('import-file-input');
 
 themeToggleBtn.addEventListener('click', () => {
   const current = document.documentElement.getAttribute('data-theme');
@@ -40,6 +45,45 @@ statsToggleBtn.addEventListener('click', () => {
   isStatsOpen = !isStatsOpen;
   localStorage.setItem(STATS_OPEN_KEY, String(isStatsOpen));
   renderStatsPanel();
+});
+
+exportBtn.addEventListener('click', () => {
+  const blob = new Blob([JSON.stringify(habits, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `habit-tracker-backup-${todayStr()}.json`;
+  link.click();
+  URL.revokeObjectURL(url);
+});
+
+importBtn.addEventListener('click', () => importFileInput.click());
+
+importFileInput.addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const parsed = JSON.parse(reader.result);
+      const isValid =
+        Array.isArray(parsed) &&
+        parsed.every((h) => h && typeof h.name === 'string' && typeof h.completed === 'object');
+      if (!isValid) throw new Error('invalid backup file');
+
+      const confirmed = confirm(`${parsed.length}개 습관으로 현재 데이터를 덮어씁니다. 계속할까요?`);
+      if (!confirmed) return;
+
+      habits = parsed.map((h) => ({ color: DEFAULT_COLOR, collapsed: false, ...h }));
+      saveHabits();
+      renderHabits();
+    } catch (err) {
+      alert('올바른 백업 파일이 아니에요.');
+    }
+  };
+  reader.readAsText(file);
+  importFileInput.value = '';
 });
 
 function loadHabits() {
@@ -62,6 +106,22 @@ function toggleCollapse(id) {
   habit.collapsed = !habit.collapsed;
   saveHabits();
   renderHabits();
+}
+
+function handleDeleteClick(id) {
+  if (confirmDeleteId === id) {
+    clearTimeout(confirmDeleteTimer);
+    confirmDeleteId = null;
+    deleteHabit(id);
+    return;
+  }
+  confirmDeleteId = id;
+  renderHabits();
+  clearTimeout(confirmDeleteTimer);
+  confirmDeleteTimer = setTimeout(() => {
+    confirmDeleteId = null;
+    renderHabits();
+  }, 3000);
 }
 
 function scrollToHabit(id) {
@@ -394,10 +454,11 @@ function renderHabits() {
       checkBtn.style.background = isCheckedToday ? habit.color : '#fff';
       checkBtn.addEventListener('click', () => toggleDate(habit.id, todayStr()));
 
+      const isConfirmingDelete = confirmDeleteId === habit.id;
       const deleteBtn = document.createElement('button');
-      deleteBtn.className = 'delete-btn';
-      deleteBtn.textContent = '삭제';
-      deleteBtn.addEventListener('click', () => deleteHabit(habit.id));
+      deleteBtn.className = 'delete-btn' + (isConfirmingDelete ? ' confirming' : '');
+      deleteBtn.textContent = isConfirmingDelete ? '정말 삭제?' : '삭제';
+      deleteBtn.addEventListener('click', () => handleDeleteClick(habit.id));
 
       const collapseBtn = document.createElement('button');
       collapseBtn.type = 'button';

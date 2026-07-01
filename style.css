@@ -146,8 +146,29 @@ body {
 
 .stats-toggle-row {
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   margin-bottom: 12px;
+}
+
+.data-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.data-action-btn {
+  padding: 6px 12px;
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  background: var(--card-bg);
+  color: var(--text);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.data-action-btn:hover {
+  background: var(--hover-bg);
 }
 
 .stats-toggle-btn {
@@ -511,6 +532,15 @@ body {
 
 .delete-btn:hover {
   text-decoration: underline;
+}
+
+.delete-btn.confirming {
+  background: #cf222e;
+  color: #fff;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-weight: 600;
+  text-decoration: none;
 }
 
 .calendar-header {

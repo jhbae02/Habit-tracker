@@ -46,6 +46,11 @@
     </header>
 
     <div class="stats-toggle-row">
+      <div class="data-actions">
+        <button id="export-btn" class="data-action-btn" type="button">⬇ 내보내기</button>
+        <button id="import-btn" class="data-action-btn" type="button">⬆ 가져오기</button>
+        <input type="file" id="import-file-input" accept="application/json" hidden>
+      </div>
       <button id="stats-toggle-btn" class="stats-toggle-btn" type="button">
         📊 통계 보기 <span class="chevron">▾</span>
       </button>
