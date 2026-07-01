@@ -144,6 +144,112 @@ body {
   display: none;
 }
 
+.stats-toggle-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 12px;
+}
+
+.stats-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  background: var(--card-bg);
+  color: var(--text);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.stats-toggle-btn:hover {
+  background: var(--hover-bg);
+}
+
+.stats-toggle-btn .chevron {
+  display: inline-block;
+  transition: transform 0.15s ease;
+}
+
+.stats-toggle-btn.open .chevron {
+  transform: rotate(180deg);
+}
+
+.stats-panel {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 18px 20px;
+  margin-bottom: 20px;
+}
+
+.stats-panel[hidden] {
+  display: none;
+}
+
+.stats-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.stats-label {
+  width: 90px;
+  flex-shrink: 0;
+  font-size: 13px;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stats-bar-track {
+  flex: 1;
+  height: 14px;
+  background: var(--hover-bg);
+  border-radius: 7px;
+  overflow: hidden;
+}
+
+.stats-bar-fill {
+  height: 100%;
+  border-radius: 7px;
+  transition: width 0.3s ease;
+}
+
+.stats-value {
+  width: 44px;
+  flex-shrink: 0;
+  text-align: right;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.stats-summary {
+  margin: 12px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+  text-align: right;
+}
+
+.habit-badges {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.badge {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.badge.unearned {
+  filter: grayscale(1);
+  opacity: 0.3;
+}
+
 .add-form {
   margin-bottom: 24px;
 }

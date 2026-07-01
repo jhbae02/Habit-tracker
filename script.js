@@ -2,6 +2,12 @@ const STORAGE_KEY = 'habitTrackerData';
 const WEEKDAY_LABELS = ['일', '월', '화', '수', '목', '금', '토'];
 const PALETTE = ['#2da44e', '#0969da', '#cf222e', '#bf8700', '#8250df', '#bc4c00', '#1a7f8e', '#57606a'];
 const DEFAULT_COLOR = PALETTE[0];
+const MILESTONES = [
+  { days: 7, emoji: '🥉' },
+  { days: 21, emoji: '🥈' },
+  { days: 66, emoji: '🥇' },
+  { days: 100, emoji: '🏆' },
+];
 
 let habits = loadHabits();
 const calendarView = {};
@@ -9,6 +15,7 @@ let selectedNewColor = DEFAULT_COLOR;
 let editingHabitId = null;
 let editNameDraft = '';
 let editColorDraft = DEFAULT_COLOR;
+let isStatsOpen = false;
 
 const THEME_KEY = 'habitTrackerTheme';
 
@@ -18,12 +25,19 @@ const addHabitForm = document.getElementById('add-habit-form');
 const habitInput = document.getElementById('habit-input');
 const addColorPickerEl = document.getElementById('add-color-picker');
 const themeToggleBtn = document.getElementById('theme-toggle');
+const statsToggleBtn = document.getElementById('stats-toggle-btn');
+const statsPanelEl = document.getElementById('stats-panel');
 
 themeToggleBtn.addEventListener('click', () => {
   const current = document.documentElement.getAttribute('data-theme');
   const next = current === 'dark' ? 'light' : 'dark';
   document.documentElement.setAttribute('data-theme', next);
   localStorage.setItem(THEME_KEY, next);
+});
+
+statsToggleBtn.addEventListener('click', () => {
+  isStatsOpen = !isStatsOpen;
+  renderStatsPanel();
 });
 
 function loadHabits() {
@@ -93,6 +107,93 @@ function calcStreak(habit) {
     cursor.setDate(cursor.getDate() - 1);
   }
   return streak;
+}
+
+function calcBestStreak(habit) {
+  const dates = Object.keys(habit.completed)
+    .filter((key) => habit.completed[key])
+    .sort();
+
+  if (dates.length === 0) return 0;
+
+  let best = 1;
+  let current = 1;
+  for (let i = 1; i < dates.length; i++) {
+    const diffDays = Math.round((new Date(dates[i]) - new Date(dates[i - 1])) / 86400000);
+    current = diffDays === 1 ? current + 1 : 1;
+    if (current > best) best = current;
+  }
+  return best;
+}
+
+function renderBadges(habit) {
+  const wrap = document.createElement('div');
+  wrap.className = 'habit-badges';
+
+  const best = calcBestStreak(habit);
+  MILESTONES.forEach((milestone) => {
+    const earned = best >= milestone.days;
+    const badge = document.createElement('span');
+    badge.className = 'badge' + (earned ? ' earned' : ' unearned');
+    badge.textContent = milestone.emoji;
+    badge.title = `${milestone.days}일 연속 달성` + (earned ? ' ✓' : ' (미달성)');
+    wrap.appendChild(badge);
+  });
+
+  return wrap;
+}
+
+function renderStatsPanel() {
+  statsPanelEl.hidden = !isStatsOpen;
+  statsToggleBtn.classList.toggle('open', isStatsOpen);
+  if (!isStatsOpen) return;
+
+  statsPanelEl.innerHTML = '';
+
+  if (habits.length === 0) {
+    const empty = document.createElement('p');
+    empty.className = 'empty-message';
+    empty.textContent = '통계를 보려면 습관을 먼저 추가해보세요!';
+    statsPanelEl.appendChild(empty);
+    return;
+  }
+
+  const counts = habits
+    .map((habit) => ({ habit, total: Object.keys(habit.completed).length }))
+    .sort((a, b) => b.total - a.total);
+  const maxTotal = Math.max(...counts.map((c) => c.total), 1);
+
+  counts.forEach(({ habit, total }) => {
+    const row = document.createElement('div');
+    row.className = 'stats-row';
+
+    const label = document.createElement('span');
+    label.className = 'stats-label';
+    label.textContent = habit.name;
+
+    const track = document.createElement('div');
+    track.className = 'stats-bar-track';
+    const fill = document.createElement('div');
+    fill.className = 'stats-bar-fill';
+    fill.style.width = `${(total / maxTotal) * 100}%`;
+    fill.style.background = habit.color;
+    track.appendChild(fill);
+
+    const value = document.createElement('span');
+    value.className = 'stats-value';
+    value.textContent = `${total}일`;
+
+    row.appendChild(label);
+    row.appendChild(track);
+    row.appendChild(value);
+    statsPanelEl.appendChild(row);
+  });
+
+  const totalCheckins = counts.reduce((sum, c) => sum + c.total, 0);
+  const summary = document.createElement('p');
+  summary.className = 'stats-summary';
+  summary.textContent = `총 ${habits.length}개 습관 · 누적 체크인 ${totalCheckins}회`;
+  statsPanelEl.appendChild(summary);
 }
 
 function getCalendarView(habitId) {
@@ -263,10 +364,15 @@ function renderHabits() {
     }
 
     card.appendChild(header);
+    if (habit.id !== editingHabitId) {
+      card.appendChild(renderBadges(habit));
+    }
     card.appendChild(renderCalendar(habit));
 
     habitListEl.appendChild(card);
   });
+
+  renderStatsPanel();
 }
 
 function startEditing(habit) {
