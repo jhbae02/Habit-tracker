@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>습관 트래커</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>습관 트래커</h1>
+
+    <form id="add-habit-form" class="add-form">
+      <div class="add-form-row">
+        <input type="text" id="habit-input" placeholder="새 습관 입력 (예: 물 마시기)" maxlength="30" required>
+        <button type="submit">추가</button>
+      </div>
+      <div id="add-color-picker" class="color-picker"></div>
+    </form>
+
+    <p id="empty-message" class="empty-message">아직 등록된 습관이 없어요. 위에서 추가해보세요!</p>
+    <div id="habit-list" class="habit-list"></div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

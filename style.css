@@ -1,0 +1,283 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", "Apple SD Gothic Neo", sans-serif;
+  background: #f5f6f8;
+  color: #24292f;
+}
+
+.container {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 32px 20px 80px;
+}
+
+h1 {
+  font-size: 24px;
+  margin-bottom: 20px;
+}
+
+.add-form {
+  margin-bottom: 24px;
+}
+
+.add-form-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.add-form input {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid #d0d7de;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.add-form button {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 6px;
+  background: #2da44e;
+  color: #fff;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.add-form button:hover {
+  background: #2c974b;
+}
+
+.color-picker {
+  display: flex;
+  gap: 8px;
+}
+
+.color-swatch {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  padding: 0;
+}
+
+.color-swatch.selected {
+  border-color: #24292f;
+}
+
+.empty-message {
+  color: #656d76;
+  font-size: 14px;
+}
+
+.habit-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.habit-card {
+  background: #fff;
+  border: 1px solid #d8dee4;
+  border-radius: 8px;
+  padding: 16px 20px;
+}
+
+.habit-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.habit-name-group {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.habit-name {
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.habit-name:hover {
+  text-decoration: underline;
+}
+
+.habit-color-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.edit-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.edit-name-input {
+  padding: 6px 10px;
+  border: 1px solid #d0d7de;
+  border-radius: 6px;
+  font-size: 14px;
+  min-width: 140px;
+}
+
+.edit-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.save-btn,
+.cancel-btn {
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.save-btn {
+  border: none;
+  background: #2da44e;
+  color: #fff;
+}
+
+.cancel-btn {
+  border: 1px solid #d0d7de;
+  background: #fff;
+  color: #24292f;
+}
+
+.habit-streak {
+  font-size: 13px;
+  color: #bf8700;
+  background: #fff8c5;
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+
+.habit-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.check-today-btn {
+  padding: 6px 14px;
+  border: 1px solid;
+  border-radius: 6px;
+  background: #fff;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.check-today-btn.checked {
+  color: #fff;
+}
+
+.delete-btn {
+  border: none;
+  background: none;
+  color: #cf222e;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 4px 6px;
+}
+
+.delete-btn:hover {
+  text-decoration: underline;
+}
+
+.calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 10px;
+}
+
+.calendar-label {
+  font-size: 14px;
+  font-weight: 600;
+  min-width: 90px;
+  text-align: center;
+}
+
+.calendar-nav-btn {
+  border: 1px solid #d0d7de;
+  background: #fff;
+  border-radius: 6px;
+  width: 26px;
+  height: 26px;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  color: #24292f;
+}
+
+.calendar-nav-btn:hover {
+  background: #f3f4f6;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.calendar-weekday {
+  text-align: center;
+  font-size: 12px;
+  color: #656d76;
+  padding-bottom: 4px;
+}
+
+.calendar-day {
+  aspect-ratio: 1 / 1;
+  border: 1px solid #d8dee4;
+  background: #fff;
+  border-radius: 6px;
+  font-size: 12px;
+  color: #24292f;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.calendar-day:hover:not(:disabled) {
+  border-color: #2da44e;
+}
+
+.calendar-day.empty {
+  border: none;
+  background: transparent;
+  cursor: default;
+}
+
+.calendar-day.completed {
+  color: #fff;
+}
+
+.calendar-day.today {
+  outline: 2px solid #bf8700;
+  outline-offset: -2px;
+}
+
+.calendar-day.future {
+  color: #afb8c1;
+  cursor: not-allowed;
+}
