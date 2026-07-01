@@ -21,7 +21,19 @@
 </script>
 </head>
 <body>
-  <div class="container">
+  <div id="auth-screen" class="auth-screen" hidden>
+    <div class="auth-card">
+      <h1 class="app-title">습관 트래커</h1>
+      <p class="app-subtitle">Habit Tracker</p>
+      <form id="auth-form" class="auth-form">
+        <input type="email" id="auth-email-input" placeholder="이메일 주소" required>
+        <button type="submit">매직 링크 보내기</button>
+      </form>
+      <p id="auth-message" class="auth-message"></p>
+    </div>
+  </div>
+
+  <div id="app" class="container" hidden>
     <header class="app-header">
       <div class="app-header-left">
         <div class="app-icon" aria-hidden="true">
@@ -41,15 +53,18 @@
           <p class="app-subtitle">Habit Tracker</p>
         </div>
       </div>
-      <button id="theme-toggle" class="theme-toggle-btn" type="button" aria-label="다크 모드 전환">
-        <svg class="icon-moon" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-          <path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z"/>
-        </svg>
-        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="12" cy="12" r="4"/>
-          <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
-        </svg>
-      </button>
+      <div class="app-header-actions">
+        <button id="signout-btn" class="data-action-btn" type="button">로그아웃</button>
+        <button id="theme-toggle" class="theme-toggle-btn" type="button" aria-label="다크 모드 전환">
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z"/>
+          </svg>
+          <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="12" r="4"/>
+            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+          </svg>
+        </button>
+      </div>
     </header>
 
     <div class="stats-toggle-row">
@@ -76,6 +91,9 @@
     <div id="habit-list" class="habit-list"></div>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="config.js"></script>
+  <script src="supabaseClient.js"></script>
   <script src="script.js"></script>
   <script>
     if ('serviceWorker' in navigator) {

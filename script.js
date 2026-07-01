@@ -1,4 +1,3 @@
-const STORAGE_KEY = 'habitTrackerData';
 const WEEKDAY_LABELS = ['일', '월', '화', '수', '목', '금', '토'];
 const PALETTE = ['#2da44e', '#0969da', '#cf222e', '#bf8700', '#8250df', '#bc4c00', '#1a7f8e', '#57606a'];
 const DEFAULT_COLOR = PALETTE[0];
@@ -9,7 +8,8 @@ const MILESTONES = [
   { days: 100, emoji: '🏆' },
 ];
 
-let habits = loadHabits();
+let habits = [];
+let currentUserId = null;
 const calendarView = {};
 let selectedNewColor = DEFAULT_COLOR;
 let editingHabitId = null;
@@ -21,6 +21,13 @@ let confirmDeleteTimer = null;
 const THEME_KEY = 'habitTrackerTheme';
 const STATS_OPEN_KEY = 'habitTrackerStatsOpen';
 let isStatsOpen = localStorage.getItem(STATS_OPEN_KEY) !== 'false';
+
+const authScreenEl = document.getElementById('auth-screen');
+const appEl = document.getElementById('app');
+const authFormEl = document.getElementById('auth-form');
+const authEmailInputEl = document.getElementById('auth-email-input');
+const authMessageEl = document.getElementById('auth-message');
+const signoutBtn = document.getElementById('signout-btn');
 
 const habitListEl = document.getElementById('habit-list');
 const emptyMessageEl = document.getElementById('empty-message');
@@ -64,7 +71,7 @@ importFileInput.addEventListener('change', (e) => {
   if (!file) return;
 
   const reader = new FileReader();
-  reader.onload = () => {
+  reader.onload = async () => {
     try {
       const parsed = JSON.parse(reader.result);
       const isValid =
@@ -75,46 +82,114 @@ importFileInput.addEventListener('change', (e) => {
       const confirmed = confirm(`${parsed.length}개 습관으로 현재 데이터를 덮어씁니다. 계속할까요?`);
       if (!confirmed) return;
 
-      habits = parsed.map((h) => ({ color: DEFAULT_COLOR, collapsed: false, ...h }));
-      saveHabits();
+      const { error: deleteError } = await supabaseClient.from('habits').delete().eq('user_id', currentUserId);
+      if (deleteError) throw deleteError;
+
+      const rows = parsed.map((h, index) => ({
+        user_id: currentUserId,
+        name: h.name,
+        color: h.color || DEFAULT_COLOR,
+        collapsed: !!h.collapsed,
+        completed: h.completed || {},
+        position: index,
+      }));
+
+      const { data, error: insertError } = await supabaseClient.from('habits').insert(rows).select();
+      if (insertError) throw insertError;
+
+      habits = data.sort((a, b) => a.position - b.position);
       renderHabits();
     } catch (err) {
-      alert('올바른 백업 파일이 아니에요.');
+      alert('올바른 백업 파일이 아니거나 가져오기에 실패했어요.');
     }
   };
   reader.readAsText(file);
   importFileInput.value = '';
 });
 
-function loadHabits() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    const parsed = raw ? JSON.parse(raw) : [];
-    return parsed.map((h) => ({ color: DEFAULT_COLOR, collapsed: false, ...h }));
-  } catch (e) {
-    return [];
+authFormEl.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const email = authEmailInputEl.value.trim();
+  if (!email) return;
+  authMessageEl.textContent = '전송 중...';
+  const { error } = await supabaseClient.auth.signInWithOtp({
+    email,
+    options: { emailRedirectTo: window.location.origin },
+  });
+  authMessageEl.textContent = error
+    ? '전송에 실패했어요. 다시 시도해주세요.'
+    : '메일함에서 매직 링크를 확인해주세요.';
+});
+
+signoutBtn.addEventListener('click', () => {
+  supabaseClient.auth.signOut();
+});
+
+supabaseClient.auth.onAuthStateChange((_event, session) => {
+  handleSession(session);
+});
+
+supabaseClient.auth.getSession().then(({ data }) => handleSession(data.session));
+
+async function handleSession(session) {
+  if (session) {
+    currentUserId = session.user.id;
+    authScreenEl.hidden = true;
+    appEl.hidden = false;
+    await fetchHabits();
+    renderAddColorPicker();
+    renderHabits();
+  } else {
+    currentUserId = null;
+    habits = [];
+    appEl.hidden = true;
+    authScreenEl.hidden = false;
   }
+}
+
+async function fetchHabits() {
+  const { data, error } = await supabaseClient
+    .from('habits')
+    .select('*')
+    .order('position', { ascending: true });
+  if (error) {
+    console.error(error);
+    habits = [];
+    return;
+  }
+  habits = data.map((h) => ({ ...h, completed: h.completed || {} }));
 }
 
 function getTotalDays(habit) {
   return Object.keys(habit.completed).filter((key) => habit.completed[key]).length;
 }
 
-function moveHabit(id, direction) {
+async function moveHabit(id, direction) {
   const index = habits.findIndex((h) => h.id === id);
   const newIndex = index + direction;
   if (index === -1 || newIndex < 0 || newIndex >= habits.length) return;
-  [habits[index], habits[newIndex]] = [habits[newIndex], habits[index]];
-  saveHabits();
+  const a = habits[index];
+  const b = habits[newIndex];
+  const aPos = a.position;
+  const bPos = b.position;
+  [habits[index], habits[newIndex]] = [b, a];
+  a.position = bPos;
+  b.position = aPos;
   renderHabits();
+  const [{ error: err1 }, { error: err2 }] = await Promise.all([
+    supabaseClient.from('habits').update({ position: a.position }).eq('id', a.id),
+    supabaseClient.from('habits').update({ position: b.position }).eq('id', b.id),
+  ]);
+  if (err1 || err2) console.error(err1 || err2);
 }
 
-function toggleCollapse(id) {
+async function toggleCollapse(id) {
   const habit = habits.find((h) => h.id === id);
   if (!habit) return;
   habit.collapsed = !habit.collapsed;
-  saveHabits();
   renderHabits();
+  const { error } = await supabaseClient.from('habits').update({ collapsed: habit.collapsed }).eq('id', id);
+  if (error) console.error(error);
 }
 
 function handleDeleteClick(id) {
@@ -137,9 +212,7 @@ function scrollToHabit(id) {
   const habit = habits.find((h) => h.id === id);
   if (!habit) return;
   if (habit.collapsed) {
-    habit.collapsed = false;
-    saveHabits();
-    renderHabits();
+    toggleCollapse(id);
   }
   const card = document.getElementById(`habit-card-${id}`);
   if (!card) return;
@@ -173,10 +246,6 @@ function renderAddColorPicker() {
       renderAddColorPicker();
     })
   );
-}
-
-function saveHabits() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(habits));
 }
 
 function dateStr(d) {
@@ -572,35 +641,43 @@ function renderEditForm(habit) {
   return form;
 }
 
-function saveEdit(id) {
+async function saveEdit(id) {
   const habit = habits.find((h) => h.id === id);
   if (!habit) return;
   const trimmed = editNameDraft.trim();
   if (trimmed) habit.name = trimmed;
   habit.color = editColorDraft;
   editingHabitId = null;
-  saveHabits();
+  renderHabits();
+  const { error } = await supabaseClient
+    .from('habits')
+    .update({ name: habit.name, color: habit.color })
+    .eq('id', id);
+  if (error) alert('저장에 실패했어요.');
+}
+
+async function addHabit(name, color) {
+  const { data, error } = await supabaseClient
+    .from('habits')
+    .insert({ user_id: currentUserId, name, color, position: habits.length, completed: {} })
+    .select()
+    .single();
+  if (error) {
+    alert('습관을 추가하지 못했어요.');
+    return;
+  }
+  habits.push({ ...data, completed: data.completed || {} });
   renderHabits();
 }
 
-function addHabit(name, color) {
-  habits.push({
-    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
-    name,
-    color,
-    completed: {},
-  });
-  saveHabits();
-  renderHabits();
-}
-
-function deleteHabit(id) {
+async function deleteHabit(id) {
   habits = habits.filter((h) => h.id !== id);
-  saveHabits();
   renderHabits();
+  const { error } = await supabaseClient.from('habits').delete().eq('id', id);
+  if (error) alert('삭제에 실패했어요. 새로고침 후 다시 시도해주세요.');
 }
 
-function toggleDate(id, key) {
+async function toggleDate(id, key) {
   const habit = habits.find((h) => h.id === id);
   if (!habit) return;
   if (habit.completed[key]) {
@@ -608,20 +685,18 @@ function toggleDate(id, key) {
   } else {
     habit.completed[key] = true;
   }
-  saveHabits();
   renderHabits();
+  const { error } = await supabaseClient.from('habits').update({ completed: habit.completed }).eq('id', id);
+  if (error) alert('저장에 실패했어요. 네트워크를 확인해주세요.');
 }
 
-addHabitForm.addEventListener('submit', (e) => {
+addHabitForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   const name = habitInput.value.trim();
   if (!name) return;
-  addHabit(name, selectedNewColor);
+  await addHabit(name, selectedNewColor);
   habitInput.value = '';
   selectedNewColor = DEFAULT_COLOR;
   renderAddColorPicker();
   habitInput.focus();
 });
-
-renderAddColorPicker();
-renderHabits();
