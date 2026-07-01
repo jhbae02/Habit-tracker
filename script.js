@@ -195,7 +195,7 @@ function renderStatsPanel() {
   counts.forEach(({ habit, total }) => {
     const row = document.createElement('div');
     row.className = 'stats-row clickable';
-    row.title = '클릭하면 해당 습관 달력으로 이동';
+    row.setAttribute('aria-label', '클릭하면 해당 습관 달력으로 이동');
     row.addEventListener('click', () => scrollToHabit(habit.id));
 
     const label = document.createElement('span');
@@ -208,7 +208,13 @@ function renderStatsPanel() {
     fill.className = 'stats-bar-fill';
     fill.style.width = `${(total / maxTotal) * 100}%`;
     fill.style.background = habit.color;
+
+    const tooltip = document.createElement('div');
+    tooltip.className = 'stats-tooltip';
+    tooltip.textContent = `연속 ${calcStreak(habit)}일 · 총 ${total}일`;
+
     track.appendChild(fill);
+    track.appendChild(tooltip);
 
     const value = document.createElement('span');
     value.className = 'stats-value';

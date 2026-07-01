@@ -214,11 +214,44 @@ body {
 }
 
 .stats-bar-track {
+  position: relative;
   flex: 1;
   height: 14px;
   background: var(--hover-bg);
   border-radius: 7px;
-  overflow: hidden;
+  overflow: visible;
+}
+
+.stats-tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translate(-50%, -6px);
+  background: var(--text);
+  color: var(--bg);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  z-index: 5;
+}
+
+.stats-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: var(--text);
+}
+
+.stats-row:hover .stats-tooltip {
+  opacity: 1;
 }
 
 .stats-bar-fill {
