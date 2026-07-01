@@ -10,11 +10,21 @@ let editingHabitId = null;
 let editNameDraft = '';
 let editColorDraft = DEFAULT_COLOR;
 
+const THEME_KEY = 'habitTrackerTheme';
+
 const habitListEl = document.getElementById('habit-list');
 const emptyMessageEl = document.getElementById('empty-message');
 const addHabitForm = document.getElementById('add-habit-form');
 const habitInput = document.getElementById('habit-input');
 const addColorPickerEl = document.getElementById('add-color-picker');
+const themeToggleBtn = document.getElementById('theme-toggle');
+
+themeToggleBtn.addEventListener('click', () => {
+  const current = document.documentElement.getAttribute('data-theme');
+  const next = current === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem(THEME_KEY, next);
+});
 
 function loadHabits() {
   try {

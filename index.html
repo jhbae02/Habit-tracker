@@ -5,10 +5,45 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>습관 트래커</title>
 <link rel="stylesheet" href="style.css">
+<script>
+  (function () {
+    var saved = localStorage.getItem('habitTrackerTheme');
+    var theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    document.documentElement.setAttribute('data-theme', theme);
+  })();
+</script>
 </head>
 <body>
   <div class="container">
-    <h1>습관 트래커</h1>
+    <header class="app-header">
+      <div class="app-header-left">
+        <div class="app-icon" aria-hidden="true">
+          <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="iconGradient" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="#2da44e"/>
+                <stop offset="100%" stop-color="#0969da"/>
+              </linearGradient>
+            </defs>
+            <circle cx="24" cy="24" r="22" fill="url(#iconGradient)"/>
+            <path d="M14 24.5l6.5 6.5L34 17" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="app-title-group">
+          <h1 class="app-title">습관 트래커</h1>
+          <p class="app-subtitle">Habit Tracker</p>
+        </div>
+      </div>
+      <button id="theme-toggle" class="theme-toggle-btn" type="button" aria-label="다크 모드 전환">
+        <svg class="icon-moon" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z"/>
+        </svg>
+        <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="4"/>
+          <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+        </svg>
+      </button>
+    </header>
 
     <form id="add-habit-form" class="add-form">
       <div class="add-form-row">
